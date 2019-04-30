@@ -8,58 +8,57 @@ import (
 	//log "github.com/sirupsen/logrus"
 )
 
- func Marshal(v interface{}) ([]byte, error) {
-	//Unmarshal everything but struct's using the default (json.Marshal)
-	//TODO: Any "non-container" kind should be unmarshaled by the standard
-	//library
+func Marshal(v interface{}) ([]byte, error) {
+	//Types that do not contain elements can be directly handled by the
+	//standard library's JSON marshaler.
 	k := dereferencedKind(v)
-	if k != reflect.Struct {
+	if !hasElem(k) {
 		return json.Marshal(v)
 	}
 
-// 	ap := r.getAdditionalProperties()
+	// 	ap := r.getAdditionalProperties()
 
-// 	//Iterate over the individual fields
-// 	st := reflect.TypeOf(r).Elem()
-// 	sv := reflect.ValueOf(r).Elem()
-// 	for i := 0; i < st.NumField(); i++ {
-// 		ft := st.Field(i)
-// 		log.Debug("Field type: ", ft)
-// 		n := name(ft)
+	// 	//Iterate over the individual fields
+	// 	st := reflect.TypeOf(r).Elem()
+	// 	sv := reflect.ValueOf(r).Elem()
+	// 	for i := 0; i < st.NumField(); i++ {
+	// 		ft := st.Field(i)
+	// 		log.Debug("Field type: ", ft)
+	// 		n := name(ft)
 
-// 		//Skip fields that are tagged with "-"
-// 		if n == "-" {
-// 			continue
-// 		}
+	// 		//Skip fields that are tagged with "-"
+	// 		if n == "-" {
+	// 			continue
+	// 		}
 
-// 		fv := sv.Field(i)
-// 		log.Debug("Value: ", fv)
+	// 		fv := sv.Field(i)
+	// 		log.Debug("Value: ", fv)
 
-// 		//Skip fields that are not both addressable and interfaceable
-// 		log.Debug("Addressable: ", fv.CanAddr())
-// 		log.Debug("Interfacable: ", fv.CanInterface())
-// 		if !fv.CanAddr() || !fv.CanInterface() {
-// 			continue
-// 		}
+	// 		//Skip fields that are not both addressable and interfaceable
+	// 		log.Debug("Addressable: ", fv.CanAddr())
+	// 		log.Debug("Interfacable: ", fv.CanInterface())
+	// 		if !fv.CanAddr() || !fv.CanInterface() {
+	// 			continue
+	// 		}
 
-// 		//Marshal all the other fields
-// 		m, err := json.Marshal(fv.Interface())
-// 		if err != nil {
-// 			log.Error(err)
-// 			continue
-// 		}
+	// 		//Marshal all the other fields
+	// 		m, err := json.Marshal(fv.Interface())
+	// 		if err != nil {
+	// 			log.Error(err)
+	// 			continue
+	// 		}
 
-// 		//Add them to the additional properties map as json.RawMessages
-// 		log.Debug("Marshalled: ", string(m))
-// 		ap[n] = json.RawMessage(m)
- 	// }
+	// 		//Add them to the additional properties map as json.RawMessages
+	// 		log.Debug("Marshalled: ", string(m))
+	// 		ap[n] = json.RawMessage(m)
+	// }
 
-// 	//Marshal the map that now contains all the struct's fields plus the
-// 	//original additional properties
-// 	return json.Marshal(r.getAdditionalProperties())
+	// 	//Marshal the map that now contains all the struct's fields plus the
+	// 	//original additional properties
+	// 	return json.Marshal(r.getAdditionalProperties())
 
-//TODO: Get rid of this when the rest of the library is converted and
-//tested
+	//TODO: Get rid of this when the rest of the library is converted and
+	//tested
 	return nil, errors.New("Not yet implemented")
 }
 
@@ -83,10 +82,17 @@ func dereferencedType(v interface{}) reflect.Type {
 //Array, Chan, Map, Ptr, or Slice
 func dereferencedTypeRecursion(t reflect.Type) reflect.Type {
 	k := t.Kind()
-	if k == reflect.Array ||  k == reflect.Chan || k == reflect.Map || k == reflect.Ptr ||  k == reflect.Slice {
+	if hasElem(k) {
 		return dereferencedTypeRecursion(t.Elem())
 	}
 	return t
+}
+
+func hasElem(k reflect.Kind) bool {
+	if k == reflect.Array || k == reflect.Chan || k == reflect.Map || k == reflect.Ptr || k == reflect.Slice {
+		return true
+	}
+	return false
 }
 
 // Invalid Kind = iota
