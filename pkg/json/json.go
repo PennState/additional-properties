@@ -17,6 +17,10 @@ func Marshal(v interface{}) ([]byte, error) {
 		return json.Marshal(v)
 	}
 
+	if k == reflect.Struct {
+		return marshalStruct(v)
+	}
+
 	// 	ap := r.getAdditionalProperties()
 
 	// 	//Iterate over the individual fields
@@ -126,8 +130,8 @@ func hasElem(k reflect.Kind) bool {
 // Struct
 // UnsafePointer
 
-func marshalStruct() {
-
+func marshalStruct(v interface{}) ([]byte, error) {
+	return nil, nil
 }
 
 //name gets the JSON tag decorating the struct field passed as the
