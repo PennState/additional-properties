@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"reflect"
-	//"strings"
-	//log "github.com/sirupsen/logrus"
+	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func Marshal(v interface{}) ([]byte, error) {
@@ -88,6 +89,8 @@ func dereferencedTypeRecursion(t reflect.Type) reflect.Type {
 	return t
 }
 
+//hasElem indicates that the Kind passed as a parameter has an element.
+//See https://golang.org/pkg/reflect/#Type Elem()
 func hasElem(k reflect.Kind) bool {
 	if k == reflect.Array || k == reflect.Chan || k == reflect.Map || k == reflect.Ptr || k == reflect.Slice {
 		return true
@@ -96,46 +99,52 @@ func hasElem(k reflect.Kind) bool {
 }
 
 // Invalid Kind = iota
-// Bool
-// Int
-// Int8
-// Int16
-// Int32
-// Int64
-// Uint
-// Uint8
-// Uint16
-// Uint32
-// Uint64
-// Uintptr
-// Float32
-// Float64
-// Complex64
-// Complex128
-// Array
-// Chan
-// Func
-// Interface
-// Map
+// Bool sl
+// Int sl
+// Int8 sl
+// Int16 sl
+// Int32 sl
+// Int64 sl
+// Uint sl
+// Uint8 sl
+// Uint16 sl
+// Uint32 sl
+// Uint64 sl
+// Uintptr sl
+// Float32 sl
+// Float64 sl
+// Complex64 sl
+// Complex128 sl
+// Array ap for struct or interface elements sl for others
+// Chan panic
+// Func panic
+// Interface 
+// Map 
 // Ptr
 // Slice
 // String
 // Struct
 // UnsafePointer
 
-// func name(sf reflect.StructField) string {
-// 	t := sf.Tag.Get("json")
-// 	log.Debug("Tag: ", t)
+func marshalStruct() {
 
-// 	if t != "" {
-// 		if idx := strings.Index(t, ","); idx != -1 {
-// 			return t[:idx]
-// 		}
-// 		return t
-// 	}
+}
 
-// 	return sf.Name
-// }
+//name gets the JSON tag decorating the struct field passed as the
+//parameter
+func name(sf reflect.StructField) string {
+	t := sf.Tag.Get("json")
+	log.Debug("Tag: ", t)
+
+	if t != "" {
+		if idx := strings.Index(t, ","); idx != -1 {
+			return t[:idx]
+		}
+		return t
+	}
+
+	return sf.Name
+}
 
 // func unmarshalResource(data []byte, resource resource) error {
 // 	var ap map[string]json.RawMessage
