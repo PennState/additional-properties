@@ -23,7 +23,7 @@ func Marshal(v interface{}) ([]byte, error) {
 
 	//TODO: Marshal the additional properties field as defined by the
 	//struct's field tags
-	
+
 	// 	//Marshal the map that now contains all the struct's fields plus the
 	// 	//original additional properties
 	// 	return json.Marshal(r.getAdditionalProperties())
@@ -141,18 +141,28 @@ func marshalStruct(v interface{}) ([]byte, error) {
 
 //name gets the JSON tag decorating the struct field passed as the
 //parameter
-func name(sf reflect.StructField) string {
+//TODO: we need something to find the additional properties field
+func name(sf reflect.StructField) (string, bool, bool) {
 	t := sf.Tag.Get("json")
 	log.Debug("Tag: ", t)
 
-	if t != "" {
-		if idx := strings.Index(t, ","); idx != -1 {
-			return t[:idx]
-		}
-		return t
+	if t == "" {
+		return sf.Name, false, false
 	}
 
-	return sf.Name
+	if t == "*" {
+		return "", false, true
+	}
+
+	if strings.HasPrefix(t, "-") {
+		return "", true, false
+	}
+
+	if idx := strings.Index(t, ","); idx != -1 {
+		return t[:idx], false, false
+	}
+
+	return t, false, false
 }
 
 // func unmarshalResource(data []byte, resource resource) error {
