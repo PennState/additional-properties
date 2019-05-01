@@ -21,43 +21,9 @@ func Marshal(v interface{}) ([]byte, error) {
 		return marshalStruct(v)
 	}
 
-	// 	ap := r.getAdditionalProperties()
-
-	// 	//Iterate over the individual fields
-	// 	st := reflect.TypeOf(r).Elem()
-	// 	sv := reflect.ValueOf(r).Elem()
-	// 	for i := 0; i < st.NumField(); i++ {
-	// 		ft := st.Field(i)
-	// 		log.Debug("Field type: ", ft)
-	// 		n := name(ft)
-
-	// 		//Skip fields that are tagged with "-"
-	// 		if n == "-" {
-	// 			continue
-	// 		}
-
-	// 		fv := sv.Field(i)
-	// 		log.Debug("Value: ", fv)
-
-	// 		//Skip fields that are not both addressable and interfaceable
-	// 		log.Debug("Addressable: ", fv.CanAddr())
-	// 		log.Debug("Interfacable: ", fv.CanInterface())
-	// 		if !fv.CanAddr() || !fv.CanInterface() {
-	// 			continue
-	// 		}
-
-	// 		//Marshal all the other fields
-	// 		m, err := json.Marshal(fv.Interface())
-	// 		if err != nil {
-	// 			log.Error(err)
-	// 			continue
-	// 		}
-
-	// 		//Add them to the additional properties map as json.RawMessages
-	// 		log.Debug("Marshalled: ", string(m))
-	// 		ap[n] = json.RawMessage(m)
-	// }
-
+	//TODO: Marshal the additional properties field as defined by the
+	//struct's field tags
+	
 	// 	//Marshal the map that now contains all the struct's fields plus the
 	// 	//original additional properties
 	// 	return json.Marshal(r.getAdditionalProperties())
@@ -131,6 +97,45 @@ func hasElem(k reflect.Kind) bool {
 // UnsafePointer
 
 func marshalStruct(v interface{}) ([]byte, error) {
+	//TODO: Read through field tags to find if there's an additional
+	//properties field.
+
+	// 	ap := r.getAdditionalProperties()
+
+	// 	//Iterate over the individual fields
+	// 	st := reflect.TypeOf(r).Elem()
+	// 	sv := reflect.ValueOf(r).Elem()
+	// 	for i := 0; i < st.NumField(); i++ {
+	// 		ft := st.Field(i)
+	// 		log.Debug("Field type: ", ft)
+	// 		n := name(ft)
+
+	// 		//Skip fields that are tagged with "-"
+	// 		if n == "-" {
+	// 			continue
+	// 		}
+
+	// 		fv := sv.Field(i)
+	// 		log.Debug("Value: ", fv)
+
+	// 		//Skip fields that are not both addressable and interfaceable
+	// 		log.Debug("Addressable: ", fv.CanAddr())
+	// 		log.Debug("Interfacable: ", fv.CanInterface())
+	// 		if !fv.CanAddr() || !fv.CanInterface() {
+	// 			continue
+	// 		}
+
+	// 		//Marshal all the other fields
+	// 		m, err := json.Marshal(fv.Interface())
+	// 		if err != nil {
+	// 			log.Error(err)
+	// 			continue
+	// 		}
+
+	// 		//Add them to the additional properties map as json.RawMessages
+	// 		log.Debug("Marshalled: ", string(m))
+	// 		ap[n] = json.RawMessage(m)
+	// }
 	return nil, nil
 }
 
