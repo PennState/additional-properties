@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
+	//log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -146,30 +146,24 @@ func marshalStruct(v interface{}) ([]byte, error) {
 	return nil, nil
 }
 
-//name gets the JSON tag decorating the struct field passed as the
-//parameter
-//TODO: we need something to find the additional properties field
-func name(sf reflect.StructField) (string, bool, bool) {
+//jsonName gets the effective JSON name of the passed StructField and
+//provides a flag indicating that the field should be processed.
+func jsonName(sf reflect.StructField) (string, bool) {
 	t := sf.Tag.Get(TagKey)
-	log.Debug("Tag: ", t)
 
 	if t == "" {
-		return sf.Name, false, false
+		return sf.Name, true
 	}
 
-	if t == "*" {
-		return "", false, true
-	}
-
-	if strings.HasPrefix(t, "-") {
-		return "", true, false
+	if t == "-" || t == "*" {
+		return "", false
 	}
 
 	if idx := strings.Index(t, ","); idx != -1 {
-		return t[:idx], false, false
+		return t[:idx], true
 	}
 
-	return t, false, false
+	return t, true
 }
 
 //additionalPropertiesField finds the "wild-card" JSON tag if it exists

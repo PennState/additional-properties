@@ -92,3 +92,80 @@ func TestAdditionalPropertiesFieldNotMapStringJsonRawMessage(t *testing.T) {
 	assert.Nil(t, ap)
 }
 
+func TestJsonNameOnTaggedField(t *testing.T) {
+	type testStruct struct {
+		F string `json:"f"`
+	}
+	var ts testStruct
+	sf, _ := reflect.TypeOf(ts).FieldByName("F")
+	n, ok := jsonName(sf)
+	assert.True(t, ok)
+	assert.Equal(t, "f", n)
+}
+
+func TestJsonNameOnTaggedFieldWithOtherParts(t *testing.T) {
+	type testStruct struct {
+		F string `json:"f,omitempty"`
+	}
+	var ts testStruct
+	sf, _ := reflect.TypeOf(ts).FieldByName("F")
+	n, ok := jsonName(sf)
+	assert.True(t, ok)
+	assert.Equal(t, "f", n)
+}
+
+func TestJsonNameOnTaggedFieldWithMinusFieldName(t *testing.T) {
+	type testStruct struct {
+		F string `json:"-,"`
+	}
+	var ts testStruct
+	sf, _ := reflect.TypeOf(ts).FieldByName("F")
+	n, ok := jsonName(sf)
+	assert.True(t, ok)
+	assert.Equal(t, "-", n)
+}
+
+func TestJsonNameOnTaggedFieldWithAsteriskFieldName(t *testing.T) {
+	type testStruct struct {
+		F string `json:"*,"`
+	}
+	var ts testStruct
+	sf, _ := reflect.TypeOf(ts).FieldByName("F")
+	n, ok := jsonName(sf)
+	assert.True(t, ok)
+	assert.Equal(t, "*", n)
+}
+
+func TestJsonNameOnUntaggedField(t *testing.T) {
+	type testStruct struct {
+		F string
+	}
+	var ts testStruct
+	sf, _ := reflect.TypeOf(ts).FieldByName("F")
+	n, ok := jsonName(sf)
+	assert.True(t, ok)
+	assert.Equal(t, "F", n)
+}
+
+func TestJsonNameOnSkippedField(t *testing.T) {
+	type testStruct struct {
+		F string `json:"-"`
+	}
+	var ts testStruct
+	sf, _ := reflect.TypeOf(ts).FieldByName("F")
+	n, ok := jsonName(sf)
+	assert.False(t, ok)
+	assert.Empty(t, n)
+}
+
+func TestJsonNameOnWildcardField(t *testing.T) {
+	type testStruct struct {
+		F string `json:"*"`
+	}
+	var ts testStruct
+	sf, _ := reflect.TypeOf(ts).FieldByName("F")
+	n, ok := jsonName(sf)
+	assert.False(t, ok)
+	assert.Empty(t, n)
+}
+
