@@ -2,9 +2,9 @@ package json
 
 import (
 	"encoding/json"
+	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestArraysAreDereferenced(t *testing.T) {
@@ -36,7 +36,7 @@ func TestPointersToPointersAreDereferenced(t *testing.T) {
 
 func TestAdditionalPropertiesFieldOnNonStruct(t *testing.T) {
 	v := "Test"
-	testFunc := func () {
+	testFunc := func() {
 		_, _ = additionalPropertiesField(v)
 	}
 	assert.Panics(t, testFunc)
@@ -56,7 +56,7 @@ func TestAdditionalPropertiesFieldNotDefinedInStruct(t *testing.T) {
 
 func TestAdditionalPropertiesFieldDefinedInStruct(t *testing.T) {
 	type testStruct struct {
-		S string
+		S  string
 		AP map[string]json.RawMessage `json:"*"`
 	}
 	var ts testStruct
@@ -71,7 +71,7 @@ func TestAdditionalPropertiesFieldDefinedInStruct(t *testing.T) {
 
 func TestAdditionalPropertiesFieldDefinedButUnexportedInStruct(t *testing.T) {
 	type testStruct struct {
-		S string
+		S  string
 		ap map[string]json.RawMessage `json:"*"`
 	}
 	var ts testStruct
@@ -168,4 +168,3 @@ func TestJsonNameOnWildcardField(t *testing.T) {
 	assert.False(t, ok)
 	assert.Empty(t, n)
 }
-

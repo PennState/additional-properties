@@ -5,14 +5,13 @@ import (
 	"errors"
 	"reflect"
 	"strings"
-
 	//log "github.com/sirupsen/logrus"
 )
 
 const (
-	TagKey = "json"
-	NotAStructMessage = "Only struct is accepted as an argument to this method"
-	NotAMapStringJsonRawMessageMessage = "Additional properties field must be map[string]json.RawMessage"
+	TagKey                                    = "json"
+	NotAStructMessage                         = "Only struct is accepted as an argument to this method"
+	NotAMapStringJsonRawMessageMessage        = "Additional properties field must be map[string]json.RawMessage"
 	AdditionalPropertiesMustBeExportedMessage = "Additional properties field must be exported"
 )
 
@@ -95,8 +94,8 @@ func hasElem(k reflect.Kind) bool {
 // Array ap for struct or interface elements sl for others
 // Chan panic
 // Func panic
-// Interface 
-// Map 
+// Interface
+// Map
 // Ptr
 // Slice
 // String
@@ -173,7 +172,7 @@ func jsonName(sf reflect.StructField) (string, bool) {
 func additionalPropertiesField(v interface{}) (map[string]json.RawMessage, error) {
 	t := reflect.TypeOf(v)
 	for i := 0; i < t.NumField(); i++ {
-		if t.Field(i).Tag.Get(TagKey) != "*"  {
+		if t.Field(i).Tag.Get(TagKey) != "*" {
 			continue
 		}
 
