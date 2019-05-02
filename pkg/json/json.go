@@ -9,6 +9,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	TagKey = "json"
+	NotAStructMessage = "Only struct is accepted as an argument to this method"
+	NotAMapStringJsonRawMessageMessage = "Additional properties field must be map[string]json.RawMessage"
+	AdditionalPropertiesMustBeExportedMessage = "Additional properties field must be exported"
+)
+
 func Marshal(v interface{}) ([]byte, error) {
 	//Types that do not contain elements can be directly handled by the
 	//standard library's JSON marshaler.
@@ -143,7 +150,7 @@ func marshalStruct(v interface{}) ([]byte, error) {
 //parameter
 //TODO: we need something to find the additional properties field
 func name(sf reflect.StructField) (string, bool, bool) {
-	t := sf.Tag.Get("json")
+	t := sf.Tag.Get(TagKey)
 	log.Debug("Tag: ", t)
 
 	if t == "" {
@@ -163,6 +170,32 @@ func name(sf reflect.StructField) (string, bool, bool) {
 	}
 
 	return t, false, false
+}
+
+//additionalPropertiesField finds the "wild-card" JSON tag if it exists
+//and returns the associated map[string]json.RawMessage.  If no "wild-card"
+//field is provided, a new map is returned.  This method panics if the passed
+//parameter is not a struct.
+func additionalPropertiesField(v interface{}) (map[string]json.RawMessage, error) {
+	t := reflect.TypeOf(v)
+	for i := 0; i < t.NumField(); i++ {
+		if t.Field(i).Tag.Get(TagKey) != "*"  {
+			continue
+		}
+
+		fv := reflect.ValueOf(v).Field(i)
+		if !fv.CanInterface() {
+			return nil, errors.New(AdditionalPropertiesMustBeExportedMessage)
+		}
+
+		if m, ok := fv.Interface().(map[string]json.RawMessage); ok {
+			return m, nil
+		}
+
+		return nil, errors.New(NotAMapStringJsonRawMessageMessage)
+	}
+
+	return make(map[string]json.RawMessage), nil
 }
 
 // func unmarshalResource(data []byte, resource resource) error {
