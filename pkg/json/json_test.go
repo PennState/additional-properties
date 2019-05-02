@@ -2,9 +2,10 @@ package json
 
 import (
 	"encoding/json"
+	//log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestArraysAreDereferenced(t *testing.T) {
@@ -36,7 +37,7 @@ func TestPointersToPointersAreDereferenced(t *testing.T) {
 
 func TestAdditionalPropertiesFieldOnNonStruct(t *testing.T) {
 	v := "Test"
-	testFunc := func () {
+	testFunc := func() {
 		_, _ = additionalPropertiesField(v)
 	}
 	assert.Panics(t, testFunc)
@@ -56,7 +57,7 @@ func TestAdditionalPropertiesFieldNotDefinedInStruct(t *testing.T) {
 
 func TestAdditionalPropertiesFieldDefinedInStruct(t *testing.T) {
 	type testStruct struct {
-		S string
+		S  string
 		AP map[string]json.RawMessage `json:"*"`
 	}
 	var ts testStruct
@@ -71,7 +72,7 @@ func TestAdditionalPropertiesFieldDefinedInStruct(t *testing.T) {
 
 func TestAdditionalPropertiesFieldDefinedButUnexportedInStruct(t *testing.T) {
 	type testStruct struct {
-		S string
+		S  string
 		ap map[string]json.RawMessage `json:"*"`
 	}
 	var ts testStruct
@@ -169,3 +170,44 @@ func TestJsonNameOnWildcardField(t *testing.T) {
 	assert.Empty(t, n)
 }
 
+func TestMarshalStruct(t *testing.T) {
+	type testStructA struct {
+		A string
+		B string `json:"b"`
+		C string `json:"-"`
+		d string
+		E struct {
+			EA string
+			EB string `json:"eb"`
+			EC string `json:"-"`
+		}
+		F []struct {
+			FA string `json:"fa"`
+		}
+		G map[string]json.RawMessage `json:"*"`
+	}
+}
+
+func TestMarshalStructSkipsUnexportedFields(t *testing.T) {
+	testStruct := struct {
+		A string
+		b string
+		C struct {
+			D string
+			e string
+		}
+	}{
+		A: "A",
+		b: "b",
+		C: struct {
+			D string
+			e string
+		}{
+			D: "D",
+			e: "e",
+		},
+	}
+	data, err := marshalStruct(testStruct)
+	assert.NoError(t, err)
+	assert.Equal(t, "{\"A\":\"A\",\"C\":{\"D\":\"D\"}}", string(data))
+}
