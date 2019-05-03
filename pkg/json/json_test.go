@@ -2,6 +2,7 @@ package json
 
 import (
 	"encoding/json"
+	//log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
@@ -167,4 +168,46 @@ func TestJsonNameOnWildcardField(t *testing.T) {
 	n, ok := jsonName(sf)
 	assert.False(t, ok)
 	assert.Empty(t, n)
+}
+
+func TestMarshalStruct(t *testing.T) {
+	type testStructA struct {
+		A string
+		B string `json:"b"`
+		C string `json:"-"`
+		d string
+		E struct {
+			EA string
+			EB string `json:"eb"`
+			EC string `json:"-"`
+		}
+		F []struct {
+			FA string `json:"fa"`
+		}
+		G map[string]json.RawMessage `json:"*"`
+	}
+}
+
+func TestMarshalStructSkipsUnexportedFields(t *testing.T) {
+	testStruct := struct {
+		A string
+		b string
+		C struct {
+			D string
+			e string
+		}
+	}{
+		A: "A",
+		b: "b",
+		C: struct {
+			D string
+			e string
+		}{
+			D: "D",
+			e: "e",
+		},
+	}
+	data, err := marshalStruct(testStruct)
+	assert.NoError(t, err)
+	assert.Equal(t, "{\"A\":\"A\",\"C\":{\"D\":\"D\"}}", string(data))
 }

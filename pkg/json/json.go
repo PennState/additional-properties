@@ -3,9 +3,9 @@ package json
 import (
 	"encoding/json"
 	"errors"
+	log "github.com/sirupsen/logrus"
 	"reflect"
 	"strings"
-	//log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -103,46 +103,43 @@ func hasElem(k reflect.Kind) bool {
 // UnsafePointer
 
 func marshalStruct(v interface{}) ([]byte, error) {
-	//TODO: Read through field tags to find if there's an additional
-	//properties field.
+	ap, err := additionalPropertiesField(v)
+	if err != nil {
+		return nil, err
+	}
 
-	// 	ap := r.getAdditionalProperties()
+	//Iterate over the individual fields
+	st := reflect.TypeOf(v)  //.Elem()
+	sv := reflect.ValueOf(v) //.Elem()
+	for i := 0; i < st.NumField(); i++ {
+		ft := st.Field(i)
 
-	// 	//Iterate over the individual fields
-	// 	st := reflect.TypeOf(r).Elem()
-	// 	sv := reflect.ValueOf(r).Elem()
-	// 	for i := 0; i < st.NumField(); i++ {
-	// 		ft := st.Field(i)
-	// 		log.Debug("Field type: ", ft)
-	// 		n := name(ft)
+		n, ok := jsonName(ft)
+		if !ok {
+			continue
+		}
 
-	// 		//Skip fields that are tagged with "-"
-	// 		if n == "-" {
-	// 			continue
-	// 		}
+		//Unexported fields should be skipped
+		fv := sv.Field(i)
+		//if !fv.CanAddr() || !fv.CanInterface() {
+		if !fv.CanInterface() {
+			continue
+		}
 
-	// 		fv := sv.Field(i)
-	// 		log.Debug("Value: ", fv)
+		//Marshal all the other fields
+		//TODO: If we can't marshal a struct field that can be interfaced
+		//should this throw an error?
+		m, err := Marshal(fv.Interface())
+		if err != nil {
+			log.Error(err)
+			continue
+		}
 
-	// 		//Skip fields that are not both addressable and interfaceable
-	// 		log.Debug("Addressable: ", fv.CanAddr())
-	// 		log.Debug("Interfacable: ", fv.CanInterface())
-	// 		if !fv.CanAddr() || !fv.CanInterface() {
-	// 			continue
-	// 		}
+		//Add them to the additional properties map as json.RawMessages
+		ap[n] = json.RawMessage(m)
+	}
 
-	// 		//Marshal all the other fields
-	// 		m, err := json.Marshal(fv.Interface())
-	// 		if err != nil {
-	// 			log.Error(err)
-	// 			continue
-	// 		}
-
-	// 		//Add them to the additional properties map as json.RawMessages
-	// 		log.Debug("Marshalled: ", string(m))
-	// 		ap[n] = json.RawMessage(m)
-	// }
-	return nil, nil
+	return json.Marshal(ap)
 }
 
 //jsonName gets the effective JSON name of the passed StructField and
