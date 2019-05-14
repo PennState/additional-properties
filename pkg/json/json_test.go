@@ -1,12 +1,59 @@
 package json
 
 import (
-	"encoding/json"
-	//log "github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
+	std_json "encoding/json"
 	"reflect"
 	"testing"
+
+	//	"github.com/PennState/go-additional-properties/pkg/json"
+
+	log "github.com/sirupsen/logrus"
+
+	"github.com/stretchr/testify/assert"
 )
+
+//
+//Test Marshaling
+//
+
+func TestEmbeddedStructFieldsAreAddedToParent(t *testing.T) {
+	type A struct {
+		A string
+	}
+	type B struct {
+		A
+		B string
+	}
+	type C struct {
+		B
+		C string
+	}
+
+	v := C{
+		B: B{
+			A: A{
+				A: "A string",
+			},
+			B: "B string",
+		},
+		C: "C string",
+	}
+
+	json, err := Marshal(v)
+	if err != nil {
+		log.Error(err)
+	}
+	log.Info(string(json))
+	assert.Equal(t, "{\"A\":\"A string\",\"B\":\"B string\",\"C\":\"C string\"}", string(json))
+}
+
+//
+//Test Unmarshaling
+//
+
+//
+//Test DereferenceKind method
+//
 
 func TestArraysAreDereferenced(t *testing.T) {
 	assert := assert.New(t)
@@ -35,6 +82,10 @@ func TestPointersToPointersAreDereferenced(t *testing.T) {
 	assert.Equal(reflect.String, dereferencedKind(ppp))
 }
 
+//
+//Test AdditionalPropertiesField method
+//
+
 func TestAdditionalPropertiesFieldOnNonStruct(t *testing.T) {
 	v := "Test"
 	testFunc := func() {
@@ -51,33 +102,33 @@ func TestAdditionalPropertiesFieldNotDefinedInStruct(t *testing.T) {
 	ap, err := additionalPropertiesField(ts)
 	assert.NoError(t, err)
 	assert.Empty(t, ap)
-	ap["miscellaneous"] = json.RawMessage("\"with arbitrary content\"")
+	ap["miscellaneous"] = std_json.RawMessage("\"with arbitrary content\"")
 	assert.Len(t, ap, 1)
 }
 
 func TestAdditionalPropertiesFieldDefinedInStruct(t *testing.T) {
 	type testStruct struct {
 		S  string
-		AP map[string]json.RawMessage `json:"*"`
+		AP map[string]std_json.RawMessage `json:"*"`
 	}
 	var ts testStruct
-	ts.AP = make(map[string]json.RawMessage)
-	ts.AP["miscellaneous"] = json.RawMessage("\"with arbitrary content\"")
+	ts.AP = make(map[string]std_json.RawMessage)
+	ts.AP["miscellaneous"] = std_json.RawMessage("\"with arbitrary content\"")
 	ap, err := additionalPropertiesField(ts)
 	assert.NoError(t, err)
 	assert.Len(t, ap, 1)
-	ap["second value"] = json.RawMessage("\"more arbitrary content\"")
+	ap["second value"] = std_json.RawMessage("\"more arbitrary content\"")
 	assert.Len(t, ap, 2)
 }
 
 func TestAdditionalPropertiesFieldDefinedButUnexportedInStruct(t *testing.T) {
 	type testStruct struct {
 		S  string
-		ap map[string]json.RawMessage `json:"*"`
+		ap map[string]std_json.RawMessage `json:"*"`
 	}
 	var ts testStruct
-	ts.ap = make(map[string]json.RawMessage)
-	ts.ap["miscellaneous"] = json.RawMessage("\"with arbitrary content\"")
+	ts.ap = make(map[string]std_json.RawMessage)
+	ts.ap["miscellaneous"] = std_json.RawMessage("\"with arbitrary content\"")
 	ap, err := additionalPropertiesField(ts)
 	assert.Error(t, err)
 	assert.Nil(t, ap)
@@ -92,6 +143,10 @@ func TestAdditionalPropertiesFieldNotMapStringJsonRawMessage(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, ap)
 }
+
+//
+//Test jsonName method
+//
 
 func TestJsonNameOnTaggedField(t *testing.T) {
 	type testStruct struct {
@@ -184,7 +239,7 @@ func TestMarshalStruct(t *testing.T) {
 		F []struct {
 			FA string `json:"fa"`
 		}
-		G map[string]json.RawMessage `json:"*"`
+		G map[string]std_json.RawMessage `json:"*"`
 	}
 }
 

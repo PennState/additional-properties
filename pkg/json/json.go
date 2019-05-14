@@ -3,7 +3,6 @@ package json
 import (
 	"encoding/json"
 	"errors"
-	log "github.com/sirupsen/logrus"
 	"reflect"
 	"strings"
 )
@@ -19,12 +18,13 @@ func Marshal(v interface{}) ([]byte, error) {
 	//Types that do not contain elements can be directly handled by the
 	//standard library's JSON marshaler.
 	k := dereferencedKind(v)
-	if !hasElem(k) {
-		return json.Marshal(v)
-	}
 
 	if k == reflect.Struct {
 		return marshalStruct(v)
+	}
+
+	if !hasElem(k) {
+		return json.Marshal(v)
 	}
 
 	//TODO: Marshal the additional properties field as defined by the
@@ -107,20 +107,38 @@ func marshalStruct(v interface{}) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = marshalStructAndEmbedded(v, ap)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(ap)
+}
 
+func marshalStructAndEmbedded(v interface{}, ap map[string]json.RawMessage) error {
 	//Iterate over the individual fields
 	st := reflect.TypeOf(v)  //.Elem()
 	sv := reflect.ValueOf(v) //.Elem()
 	for i := 0; i < st.NumField(); i++ {
 		ft := st.Field(i)
 
+		//Get the field's JSON name and whether it should be processed
 		n, ok := jsonName(ft)
 		if !ok {
 			continue
 		}
 
-		//Unexported fields should be skipped
 		fv := sv.Field(i)
+
+		//Embedded structs should be marshaled into their parents
+		if ft.Type.Kind() == reflect.Struct && ft.Anonymous {
+			err := marshalStructAndEmbedded(fv.Interface(), ap)
+			if err != nil {
+				return err
+			}
+			continue
+		}
+
+		//Unexported fields should be skipped
 		//if !fv.CanAddr() || !fv.CanInterface() {
 		if !fv.CanInterface() {
 			continue
@@ -131,7 +149,6 @@ func marshalStruct(v interface{}) ([]byte, error) {
 		//should this throw an error?
 		m, err := Marshal(fv.Interface())
 		if err != nil {
-			log.Error(err)
 			continue
 		}
 
@@ -139,7 +156,7 @@ func marshalStruct(v interface{}) ([]byte, error) {
 		ap[n] = json.RawMessage(m)
 	}
 
-	return json.Marshal(ap)
+	return nil
 }
 
 //jsonName gets the effective JSON name of the passed StructField and
