@@ -23,8 +23,11 @@ func Marshal(v interface{}) ([]byte, error) {
 		val := dereferencedValue(v)
 		out := val.MethodByName("MarshalJSON").Call([]reflect.Value{})
 		j := out[0].Interface().([]byte)
-		//err := out[1].Interface().(error)
-		return j, nil
+		err := error(nil)
+		if out[1].Interface() != nil {
+			err = out[1].Interface().(error)
+		}
+		return j, err
 	}
 
 	//TODO:Add code to use text marshaler if it exists
@@ -151,6 +154,12 @@ func marshalStructAndEmbedded(v interface{}, ap map[string]json.RawMessage) erro
 	log.Info("marshalStructAndEmbedded")
 	for i := 0; i < st.NumField(); i++ {
 		ft := st.Field(i)
+
+		tag := NewTag(ft)
+		//TODO:OmitEmpty should be moved after checking values
+		if tag.Omit || tag.OmitEmpty {
+			continue
+		}
 
 		//Get the field's JSON name and whether it should be processed
 		n, ok := jsonName(ft)
