@@ -5,6 +5,8 @@ import (
 	"errors"
 	"reflect"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -15,6 +17,18 @@ const (
 )
 
 func Marshal(v interface{}) ([]byte, error) {
+	t := dereferencedType(v)
+	_, found := t.MethodByName("MarshalJSON")
+	if found {
+		val := dereferencedValue(v)
+		out := val.MethodByName("MarshalJSON").Call([]reflect.Value{})
+		j := out[0].Interface().([]byte)
+		//err := out[1].Interface().(error)
+		return j, nil
+	}
+
+	//TODO:Add code to use text marshaler if it exists
+
 	//Types that do not contain elements can be directly handled by the
 	//standard library's JSON marshaler.
 	k := dereferencedKind(v)
@@ -26,6 +40,9 @@ func Marshal(v interface{}) ([]byte, error) {
 	if !hasElem(k) {
 		return json.Marshal(v)
 	}
+
+	//TODO: Marshal arrays and slices (not generically)
+	return json.Marshal(v)
 
 	//TODO: Marshal the additional properties field as defined by the
 	//struct's field tags
@@ -58,11 +75,23 @@ func dereferencedType(v interface{}) reflect.Type {
 
 //Array, Chan, Map, Ptr, or Slice
 func dereferencedTypeRecursion(t reflect.Type) reflect.Type {
-	k := t.Kind()
-	if hasElem(k) {
+	// k := t.Kind()
+	// if hasElem(k) {
+	if t.Kind() == reflect.Ptr {
 		return dereferencedTypeRecursion(t.Elem())
 	}
 	return t
+}
+
+func dereferencedValue(v interface{}) reflect.Value {
+	return dereferencedValueRecursion(reflect.ValueOf(v))
+}
+
+func dereferencedValueRecursion(v reflect.Value) reflect.Value {
+	if v.Kind() == reflect.Ptr {
+		return dereferencedValueRecursion(v.Elem())
+	}
+	return v
 }
 
 //hasElem indicates that the Kind passed as a parameter has an element.
@@ -103,6 +132,7 @@ func hasElem(k reflect.Kind) bool {
 // UnsafePointer
 
 func marshalStruct(v interface{}) ([]byte, error) {
+	log.Info("Type: ", reflect.TypeOf(v))
 	ap, err := additionalPropertiesField(v)
 	if err != nil {
 		return nil, err
@@ -116,8 +146,9 @@ func marshalStruct(v interface{}) ([]byte, error) {
 
 func marshalStructAndEmbedded(v interface{}, ap map[string]json.RawMessage) error {
 	//Iterate over the individual fields
-	st := reflect.TypeOf(v)  //.Elem()
-	sv := reflect.ValueOf(v) //.Elem()
+	st := dereferencedType(v)
+	sv := dereferencedValue(v)
+	log.Info("marshalStructAndEmbedded")
 	for i := 0; i < st.NumField(); i++ {
 		ft := st.Field(i)
 
@@ -184,7 +215,8 @@ func jsonName(sf reflect.StructField) (string, bool) {
 //field is provided, a new map is returned.  This method panics if the passed
 //parameter is not a struct.
 func additionalPropertiesField(v interface{}) (map[string]json.RawMessage, error) {
-	t := reflect.TypeOf(v)
+	t := dereferencedType(v)
+	log.Info("additionalPropertiesField")
 	for i := 0; i < t.NumField(); i++ {
 		if t.Field(i).Tag.Get(TagKey) != "*" {
 			continue
