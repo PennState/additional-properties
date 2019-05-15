@@ -5,8 +5,6 @@ import (
 	"errors"
 	"reflect"
 	"strings"
-
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -136,7 +134,6 @@ func hasElem(k reflect.Kind) bool {
 // UnsafePointer
 
 func marshalStruct(v interface{}) ([]byte, error) {
-	log.Info("Type: ", reflect.TypeOf(v))
 	ap, err := additionalPropertiesField(v)
 	if err != nil {
 		return nil, err
@@ -152,7 +149,6 @@ func marshalStructAndEmbedded(v interface{}, ap map[string]json.RawMessage) erro
 	//Iterate over the individual fields
 	st := dereferencedType(v)
 	sv := dereferencedValue(v)
-	log.Info("marshalStructAndEmbedded")
 	for i := 0; i < st.NumField(); i++ {
 		ft := st.Field(i)
 
@@ -185,7 +181,6 @@ func marshalStructAndEmbedded(v interface{}, ap map[string]json.RawMessage) erro
 		}
 
 		//Don't marshal empty tags if omitempty is present
-		log.Info("Name: ", n, ", OmitEmpty: ", tag.OmitEmpty, ", IsEmpty: ", isEmpty(fv), ", Value: ", fv)
 		if tag.OmitEmpty && isEmpty(fv) {
 			continue
 		}
@@ -194,7 +189,6 @@ func marshalStructAndEmbedded(v interface{}, ap map[string]json.RawMessage) erro
 		//TODO: If we can't marshal a struct field that can be interfaced
 		//should this throw an error?
 		m, err := Marshal(fv.Interface())
-		log.Info("Marshaled value: ", m)
 		if err != nil {
 			continue
 		}
@@ -286,7 +280,7 @@ func additionalPropertiesField(v interface{}) (map[string]json.RawMessage, error
 		return nil, errors.New(NotAMapStringJsonRawMessageMessage)
 	}
 
-	return nil, errors.New(NoAdditionalPropertiesFieldTagged)
+	return make(map[string]json.RawMessage), nil
 }
 
 // func unmarshalResource(data []byte, resource resource) error {
