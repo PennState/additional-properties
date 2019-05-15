@@ -14,6 +14,7 @@ const (
 	NotAStructMessage                         = "Only struct is accepted as an argument to this method"
 	NotAMapStringJsonRawMessageMessage        = "Additional properties field must be map[string]json.RawMessage"
 	AdditionalPropertiesMustBeExportedMessage = "Additional properties field must be exported"
+	NoAdditionalPropertiesFieldTagged         = "No field was tagged to receive additional properties"
 )
 
 func Marshal(v interface{}) ([]byte, error) {
@@ -260,8 +261,15 @@ func jsonName(sf reflect.StructField) (string, bool) {
 func additionalPropertiesField(v interface{}) (map[string]json.RawMessage, error) {
 	t := dereferencedType(v)
 	v1 := dereferencedValue(v)
-	log.Info("additionalPropertiesField")
 	for i := 0; i < t.NumField(); i++ {
+		if t.Field(i).Anonymous {
+			ap, err := additionalPropertiesField(v1.Field(i).Interface())
+			if err != nil {
+				continue
+			}
+			return ap, err
+		}
+
 		if t.Field(i).Tag.Get(TagKey) != "*" {
 			continue
 		}
@@ -278,7 +286,7 @@ func additionalPropertiesField(v interface{}) (map[string]json.RawMessage, error
 		return nil, errors.New(NotAMapStringJsonRawMessageMessage)
 	}
 
-	return make(map[string]json.RawMessage), nil
+	return nil, errors.New(NoAdditionalPropertiesFieldTagged)
 }
 
 // func unmarshalResource(data []byte, resource resource) error {
