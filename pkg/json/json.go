@@ -209,11 +209,13 @@ func isEmpty(v reflect.Value) bool {
 	k := v.Type().Kind()
 	switch k {
 	case reflect.Bool:
-		return v.Interface() == false
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-		reflect.Float32, reflect.Float64:
-		return v.Interface() == 0
+		return !v.Bool()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return v.Uint() == 0
+	case reflect.Float32, reflect.Float64:
+		return v.Float() == 0
 	case reflect.Array, reflect.Slice, reflect.Map, reflect.String:
 		return v.Len() == 0
 	case reflect.Struct:
@@ -257,13 +259,14 @@ func jsonName(sf reflect.StructField) (string, bool) {
 //parameter is not a struct.
 func additionalPropertiesField(v interface{}) (map[string]json.RawMessage, error) {
 	t := dereferencedType(v)
+	v1 := dereferencedValue(v)
 	log.Info("additionalPropertiesField")
 	for i := 0; i < t.NumField(); i++ {
 		if t.Field(i).Tag.Get(TagKey) != "*" {
 			continue
 		}
 
-		fv := reflect.ValueOf(v).Field(i)
+		fv := v1.Field(i)
 		if !fv.CanInterface() {
 			return nil, errors.New(AdditionalPropertiesMustBeExportedMessage)
 		}
