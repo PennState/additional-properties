@@ -145,6 +145,25 @@ func TestAdditionalPropertiesFieldNotMapStringJsonRawMessage(t *testing.T) {
 }
 
 //
+//Test isEmpty method
+//
+
+func TestIsEmptyWithNestedStruct(t *testing.T) {
+	type AStruct struct {
+		AField  string
+		BStruct struct {
+			BField int
+		}
+	}
+	var s AStruct
+	p := &s
+	pp := &p
+	assert.True(t, isEmpty(reflect.ValueOf(s)))
+	assert.True(t, isEmpty(reflect.ValueOf(p)))
+	assert.True(t, isEmpty(reflect.ValueOf(pp)))
+}
+
+//
 //Test jsonName method
 //
 

@@ -156,8 +156,7 @@ func marshalStructAndEmbedded(v interface{}, ap map[string]json.RawMessage) erro
 		ft := st.Field(i)
 
 		tag := NewTag(ft)
-		//TODO:OmitEmpty should be moved after checking values
-		if tag.Omit || tag.OmitEmpty {
+		if tag.Omit {
 			continue
 		}
 
@@ -184,10 +183,17 @@ func marshalStructAndEmbedded(v interface{}, ap map[string]json.RawMessage) erro
 			continue
 		}
 
+		//Don't marshal empty tags if omitempty is present
+		log.Info("Name: ", n, ", OmitEmpty: ", tag.OmitEmpty, ", IsEmpty: ", isEmpty(fv), ", Value: ", fv)
+		if tag.OmitEmpty && isEmpty(fv) {
+			continue
+		}
+
 		//Marshal all the other fields
 		//TODO: If we can't marshal a struct field that can be interfaced
 		//should this throw an error?
 		m, err := Marshal(fv.Interface())
+		log.Info("Marshaled value: ", m)
 		if err != nil {
 			continue
 		}
@@ -197,6 +203,32 @@ func marshalStructAndEmbedded(v interface{}, ap map[string]json.RawMessage) erro
 	}
 
 	return nil
+}
+
+func isEmpty(v reflect.Value) bool {
+	k := v.Type().Kind()
+	switch k {
+	case reflect.Bool:
+		return v.Interface() == false
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Float32, reflect.Float64:
+		return v.Interface() == 0
+	case reflect.Array, reflect.Slice, reflect.Map, reflect.String:
+		return v.Len() == 0
+	case reflect.Struct:
+		for i := 0; i < v.NumField(); i++ {
+			if !isEmpty(v.Field(i)) {
+				return false
+			}
+		}
+		return true
+	case reflect.Ptr:
+		return isEmpty(reflect.Indirect(v))
+	default:
+		// Uintptr Complex64 Complex128 Chan Func Interface UnsafePointer
+		panic("The concept of \"empty\" is meaningless for kind: " + k.String())
+	}
 }
 
 //jsonName gets the effective JSON name of the passed StructField and
