@@ -13,12 +13,8 @@ func TestGeneratedMarshalerWorks(t *testing.T) {
 	expected, err := ioutil.ReadFile("simple.json")
 	require.NoError(t, err)
 	input := newTestSimple()
-	data, err := json.Marshal(&input)
+	actual, err := json.Marshal(&input)
 	assert.NoError(t, err)
-	actual := []byte("{\"a\":\"Field A\",")
-	for _, b := range data[1:] {
-		actual = append(actual, b)
-	}
 	assert.Equal(t, expected, actual)
 }
 
