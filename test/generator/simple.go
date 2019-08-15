@@ -3,7 +3,7 @@ package acceptance
 // Simple is the most basic struct to which we can add additional-
 // properties.
 type Simple struct {
-	A  string
+	A  string                 `json:"a"`
 	AP map[string]interface{} `json:"*"`
 }
 
