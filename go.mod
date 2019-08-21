@@ -1,4 +1,4 @@
-module github.com/PennState/go-additional-properties
+module github.com/PennState/additional-properties
 
 go 1.12
 

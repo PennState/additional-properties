@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/PennState/go-additional-properties/pkg/generator"
+	"github.com/PennState/additional-properties/pkg/generator"
 	log "github.com/sirupsen/logrus"
 )
 
