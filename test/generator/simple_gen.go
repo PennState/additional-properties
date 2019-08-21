@@ -23,8 +23,7 @@ func (s *Simple) UnmarshalJSON(data []byte) error {
 	}
 	_ = json.Unmarshal(data, &s.AP)
 	names := map[string]bool{
-		"fieldA": true,
-		"fielda": true,
+		"fieldA": true, "fielda": true,
 	}
 	for k := range s.AP {
 		if names[k] {
