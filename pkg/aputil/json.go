@@ -14,6 +14,9 @@ type Tag struct {
 }
 
 func NewTagFromField(f ast.Field) (Tag, bool) {
+	if f.Tag == nil {
+		return Tag{}, false
+	}
 	for _, txt := range strings.Split(f.Tag.Value, " ") {
 		if strings.HasPrefix(txt, "`"+tagName) {
 			// TODO: this is kludgey
