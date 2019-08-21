@@ -31,8 +31,7 @@ func (s *Simple) UnmarshalJSON(data []byte) error {
 			delete(s.AP, k)
 			continue
 		}
-		lower := strings.ToLower(k)
-		if _, ok := names[lower]; ok {
+		if _, ok := names[strings.ToLower(k)]; ok {
 			delete(s.AP, k)
 		}
 	}
