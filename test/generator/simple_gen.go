@@ -8,7 +8,7 @@ import (
 func (s *Simple) MarshalJSON() ([]byte, error) {
 	type Alias Simple
 	aux := (*Alias)(s)
-	aux.AP["a"] = aux.A
+	aux.AP["fieldA"] = aux.FieldA
 	return json.Marshal(aux.AP)
 }
 
@@ -21,6 +21,6 @@ func (s *Simple) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	_ = json.Unmarshal(data, &s.AP)
-	delete(s.AP, "a")
+	delete(s.AP, "fieldA")
 	return nil
 }

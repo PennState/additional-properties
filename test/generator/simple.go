@@ -3,16 +3,16 @@ package acceptance
 // Simple is the most basic struct to which we can add additional-
 // properties.
 type Simple struct {
-	A  string                 `json:"a"`
-	AP map[string]interface{} `json:"*"`
+	FieldA string                 `json:"fieldA"`
+	AP     map[string]interface{} `json:"*"`
 }
 
 func newTestSimple() Simple {
 	return Simple{
-		A: "Field A",
+		FieldA: "Field A",
 		AP: map[string]interface{}{
-			"b": "Field B",
-			"c": "Field C",
+			"fieldB": "Field B",
+			"fieldC": "Field C",
 		},
 	}
 }
