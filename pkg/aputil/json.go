@@ -47,10 +47,18 @@ func NewTag(txt string) (Tag, bool) {
 	}, true
 }
 
-func GetJSONName(f reflect.StructField) string {
+func GetJSONName1(f reflect.StructField) string {
 	tag, ok := NewTagFromStructField(f)
 	if ok {
 		return tag.Name
 	}
 	return f.Name
+}
+
+func GetJSONName(f *ast.Field) string {
+	tag, ok := NewTagFromField(*f)
+	if ok {
+		return tag.Name
+	}
+	return f.Names[0].Name
 }
