@@ -2,6 +2,7 @@ package acceptance
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // MarshalJSON encodes the Simple struct to JSON with additional-properties
@@ -21,6 +22,19 @@ func (s *Simple) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	_ = json.Unmarshal(data, &s.AP)
-	delete(s.AP, "fieldA")
+	names := map[string]bool{
+		"fieldA": true,
+		"fielda": true,
+	}
+	for k := range s.AP {
+		if _, ok := names[k]; ok {
+			delete(s.AP, k)
+			continue
+		}
+		lower := strings.ToLower(k)
+		if _, ok := names[lower]; ok {
+			delete(s.AP, k)
+		}
+	}
 	return nil
 }

@@ -19,10 +19,13 @@ func TestGeneratedMarshalerWorks(t *testing.T) {
 }
 
 func TestGeneratedUnmarshalerWorks(t *testing.T) {
-	data, err := ioutil.ReadFile("simple.json")
-	require.NoError(t, err)
-	var s Simple
-	err = json.Unmarshal(data, &s)
-	assert.NoError(t, err)
-	assert.Equal(t, newTestSimple(), s)
+	files := []string{"simple.json", "capitalized.json"}
+	for _, file := range files {
+		data, err := ioutil.ReadFile(file)
+		require.NoError(t, err)
+		var s Simple
+		err = json.Unmarshal(data, &s)
+		assert.NoError(t, err)
+		assert.Equal(t, newTestSimple(), s)
+	}
 }
