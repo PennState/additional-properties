@@ -27,11 +27,11 @@ func (s *Simple) UnmarshalJSON(data []byte) error {
 		"fielda": true,
 	}
 	for k := range s.AP {
-		if _, ok := names[k]; ok {
+		if names[k] {
 			delete(s.AP, k)
 			continue
 		}
-		if _, ok := names[strings.ToLower(k)]; ok {
+		if names[strings.ToLower(k)] {
 			delete(s.AP, k)
 		}
 	}
