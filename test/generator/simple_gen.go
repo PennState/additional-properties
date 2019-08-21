@@ -4,40 +4,23 @@ import (
 	"encoding/json"
 )
 
+// MarshalJSON encodes the Simple struct to JSON with additional-properties
 func (s *Simple) MarshalJSON() ([]byte, error) {
 	type Alias Simple
-	aux := struct {
-		*Alias
-		AP map[string]interface{} `json:"*,omitempty"`
-	}{Alias: (*Alias)(s)}
-	data, err := json.Marshal(aux)
-	if err != nil {
-		return nil, err
-	}
-	var vmap map[string]interface{}
-	err = json.Unmarshal(data, &vmap)
-	if err != nil {
-		return nil, err
-	}
-	for k, v := range vmap {
-		aux.Alias.AP[k] = v
-	}
-	return json.Marshal(aux.Alias.AP)
+	aux := (*Alias)(s)
+	aux.AP["a"] = aux.A
+	return json.Marshal(aux.AP)
 }
 
+// UnmarshalJSON decodes JSON into the Simple struct with additional-properties
 func (s *Simple) UnmarshalJSON(data []byte) error {
 	type Alias Simple
-	aux := struct{ *Alias }{Alias: (*Alias)(s)}
+	aux := (*Alias)(s)
 	err := json.Unmarshal(data, &aux)
 	if err != nil {
 		return err
 	}
-	var ap map[string]interface{}
-	err = json.Unmarshal(data, &ap)
-	if err != nil {
-		return err
-	}
-	delete(ap, "a")
-	s.AP = ap
+	_ = json.Unmarshal(data, &s.AP)
+	delete(s.AP, "a")
 	return nil
 }
