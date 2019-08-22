@@ -128,12 +128,13 @@ func findTargets() ([]FileSpec, error) {
 		}
 		for _, f := range st.Fields.List {
 			name := f.Names[0].Name
-			if name == cs.APName {
+			jsonName := aputil.GetJSONName(f)
+			if name == cs.APName || jsonName == "-" {
 				continue
 			}
 			cs.Fields = append(cs.Fields, FieldSpec{
 				FieldName: name,
-				JsonName:  aputil.GetJSONName(f),
+				JsonName:  jsonName,
 			})
 		}
 		fs.Code = append(fs.Code, cs)
