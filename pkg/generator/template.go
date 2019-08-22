@@ -29,6 +29,9 @@ const marshalTmpl = `
 func ({{ .VarName }} {{ .TypeName }}) MarshalJSON() ([]byte, error) {
 	type Alias {{ .TypeName }}
 	aux := (Alias)({{ .VarName }})
+	if aux.{{ .APName }} == nil {
+		aux.{{ .APName }} = map[string]interface{}{}
+	}
 	{{ $ap := .APName -}}
 	{{ range .Fields -}}
 	aux.{{ $ap }}["{{ .JsonName }}"] = aux.{{ .FieldName }}

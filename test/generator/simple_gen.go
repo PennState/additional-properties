@@ -11,6 +11,9 @@ import (
 func (s Simple) MarshalJSON() ([]byte, error) {
 	type Alias Simple
 	aux := (Alias)(s)
+	if aux.AP == nil {
+		aux.AP = map[string]interface{}{}
+	}
 	aux.AP["fieldA"] = aux.FieldA
 	return json.Marshal(aux.AP)
 }

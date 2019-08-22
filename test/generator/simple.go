@@ -16,3 +16,9 @@ func newTestSimple() Simple {
 		},
 	}
 }
+
+func newTestSimpleWithoutAP() Simple {
+	return Simple{
+		FieldA: "Field A",
+	}
+}
