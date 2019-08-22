@@ -36,5 +36,8 @@ func (s *Simple) UnmarshalJSON(data []byte) error {
 			delete(s.AP, k)
 		}
 	}
+	if len(s.AP) == 0 {
+		s.AP = nil
+	}
 	return nil
 }
