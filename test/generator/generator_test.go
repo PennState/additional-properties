@@ -13,12 +13,13 @@ var tests = []struct {
 	Name          string
 	MarshalJson   string
 	UnmarshalJson string
-	Data          func() Simple
+	Data          func() interface{}
+	Zero          func() interface{}
 }{
-	{Name: "Exact match", MarshalJson: "simple.json", UnmarshalJson: "simple.json", Data: newTestSimple},
-	{Name: "Case insensitive", MarshalJson: "simple.json", UnmarshalJson: "capitalized.json", Data: newTestSimple},
-	{Name: "No additional properties", MarshalJson: "noap.json", UnmarshalJson: "noap.json", Data: newTestSimpleWithoutAP},
-	{Name: "Respects omitempty", MarshalJson: "omitempty.json", UnmarshalJson: "omitempty.json", Data: newTestOmitEmpty},
+	{Name: "Exact match", MarshalJson: "simple.json", UnmarshalJson: "simple.json", Data: newTestSimple, Zero: newZeroSimple},
+	{Name: "Case insensitive", MarshalJson: "simple.json", UnmarshalJson: "capitalized.json", Data: newTestSimple, Zero: newZeroSimple},
+	{Name: "No additional properties", MarshalJson: "noap.json", UnmarshalJson: "noap.json", Data: newTestSimpleWithoutAP, Zero: newZeroSimple},
+	{Name: "Respects omitempty", MarshalJson: "omitempty.json", UnmarshalJson: "omitempty.json", Data: newTestOmitEmpty, Zero: newZeroOmitEmpty},
 }
 
 func TestGeneratedMarshalerWorks(t *testing.T) {
@@ -29,7 +30,7 @@ func TestGeneratedMarshalerWorks(t *testing.T) {
 		input := test.Data()
 		actual, err := json.Marshal(input)
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
+		assert.JSONEq(t, string(expected), string(actual))
 	}
 }
 
@@ -38,9 +39,9 @@ func TestGeneratedUnmarshalerWorks(t *testing.T) {
 		t.Log("Test name (unmarshaling): ", test.Name)
 		data, err := ioutil.ReadFile("./testdata/" + test.UnmarshalJson)
 		require.NoError(t, err)
-		var s Simple
-		err = json.Unmarshal(data, &s)
+		z := test.Zero()
+		err = json.Unmarshal(data, z)
 		assert.NoError(t, err)
-		assert.Equal(t, test.Data(), s)
+		assert.EqualValues(t, test.Data(), z)
 	}
 }

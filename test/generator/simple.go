@@ -7,8 +7,12 @@ type Simple struct {
 	AP     map[string]interface{} `json:"*"`
 }
 
-func newTestSimple() Simple {
-	return Simple{
+func newZeroSimple() interface{} {
+	return &Simple{}
+}
+
+func newTestSimple() interface{} {
+	return &Simple{
 		FieldA: "Field A",
 		AP: map[string]interface{}{
 			"fieldB": "Field B",
@@ -17,8 +21,8 @@ func newTestSimple() Simple {
 	}
 }
 
-func newTestSimpleWithoutAP() Simple {
-	return Simple{
+func newTestSimpleWithoutAP() interface{} {
+	return &Simple{
 		FieldA: "Field A",
 	}
 }
