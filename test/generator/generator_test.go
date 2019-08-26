@@ -18,6 +18,7 @@ var tests = []struct {
 	{Name: "Exact match", MarshalJson: "simple.json", UnmarshalJson: "simple.json", Data: newTestSimple},
 	{Name: "Case insensitive", MarshalJson: "simple.json", UnmarshalJson: "capitalized.json", Data: newTestSimple},
 	{Name: "No additional properties", MarshalJson: "noap.json", UnmarshalJson: "noap.json", Data: newTestSimpleWithoutAP},
+	{Name: "Respects omitempty", MarshalJson: "omitempty.json", UnmarshalJson: "omitempty.json", Data: newTestOmitEmpty},
 }
 
 func TestGeneratedMarshalerWorks(t *testing.T) {
