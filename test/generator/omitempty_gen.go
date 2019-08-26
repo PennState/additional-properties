@@ -4,8 +4,11 @@ package acceptance
 
 import (
 	"encoding/json"
+	"reflect"
 	"strings"
 )
+
+type Valuea813234a78884ea1b08ad56a845a6292 reflect.Value // DO NOT REMOVE (guarantees the reflect package is used)
 
 // MarshalJSON encodes the OmitEmpty struct to JSON with additional-properties
 func (o OmitEmpty) MarshalJSON() ([]byte, error) {
@@ -14,7 +17,40 @@ func (o OmitEmpty) MarshalJSON() ([]byte, error) {
 	if aux.AP == nil {
 		aux.AP = map[string]interface{}{}
 	}
-	aux.AP["fieldA"] = aux.FieldA
+	if aux.A != "" {
+		aux.AP["fieldA"] = aux.A
+	}
+	if aux.B != 0 {
+		aux.AP["fieldB"] = aux.B
+	}
+	if aux.C != 0 {
+		aux.AP["fieldC"] = aux.C
+	}
+	if aux.D != 0 {
+		aux.AP["fieldD"] = aux.D
+	}
+	if aux.E != false {
+		aux.AP["fieldE"] = aux.E
+	}
+	if len(aux.F) != 0 {
+		aux.AP["fieldF"] = aux.F
+	}
+	if aux.G != nil {
+		aux.AP["fieldG"] = aux.G
+	}
+	if len(aux.H) != 0 {
+		aux.AP["fieldH"] = aux.H
+	}
+	if aux.I != nil {
+		aux.AP["fieldI"] = aux.I
+	}
+	if reflect.ValueOf(aux.J) == reflect.Zero(reflect.TypeOf(aux.J)) {
+		aux.AP["fieldJ"] = aux.J
+	}
+	if aux.K != nil {
+		aux.AP["fieldK"] = aux.K
+	}
+	aux.AP["fieldZ"] = aux.Z
 	return json.Marshal(aux.AP)
 }
 
@@ -29,6 +65,17 @@ func (o *OmitEmpty) UnmarshalJSON(data []byte) error {
 	_ = json.Unmarshal(data, &o.AP)
 	names := map[string]bool{
 		"fieldA": true, "fielda": true,
+		"fieldB": true, "fieldb": true,
+		"fieldC": true, "fieldc": true,
+		"fieldD": true, "fieldd": true,
+		"fieldE": true, "fielde": true,
+		"fieldF": true, "fieldf": true,
+		"fieldG": true, "fieldg": true,
+		"fieldH": true, "fieldh": true,
+		"fieldI": true, "fieldi": true,
+		"fieldJ": true, "fieldj": true,
+		"fieldK": true, "fieldk": true,
+		"fieldZ": true, "fieldz": true,
 	}
 	for k := range o.AP {
 		if names[k] {

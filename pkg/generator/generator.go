@@ -9,6 +9,7 @@ import (
 	"text/template"
 
 	"github.com/PennState/additional-properties/pkg/aputil"
+	"github.com/google/uuid"
 	"github.com/selesy/genutil/pkg/genutil"
 	log "github.com/sirupsen/logrus"
 )
@@ -50,7 +51,7 @@ func getStructType(n ast.Node) (*ast.TypeSpec, *ast.StructType, bool) {
 
 func getApField(st *ast.StructType) (*ast.Field, bool) {
 	for _, f := range st.Fields.List {
-		t, ok := aputil.NewTagFromField(*f)
+		t, ok := aputil.NewTagFromField(f)
 		if !ok {
 			continue
 		}
@@ -63,6 +64,7 @@ func getApField(st *ast.StructType) (*ast.Field, bool) {
 
 type FileSpec struct {
 	GoFile string
+	Random string
 	Pkg    string
 	Code   []CodeSpec
 }
@@ -77,6 +79,8 @@ type CodeSpec struct {
 type FieldSpec struct {
 	FieldName string
 	JsonName  string
+	OmitEmpty bool
+	ZeroTest  string
 }
 
 func Run() error {
@@ -104,9 +108,12 @@ func findTargets() ([]FileSpec, error) {
 	specs := map[string]FileSpec{}
 	for _, match := range matches {
 		fs, ok := specs[match.GoFile]
+		uuid, _ := uuid.NewRandom()
+		random := strings.ReplaceAll(uuid.String(), "-", "")
 		if !ok {
 			fs = FileSpec{
 				GoFile: match.GoFile,
+				Random: random,
 				Pkg:    match.File.Name.Name,
 				Code:   []CodeSpec{},
 			}
@@ -132,9 +139,18 @@ func findTargets() ([]FileSpec, error) {
 			if name == cs.APName || jsonName == "-" {
 				continue
 			}
+			jsonTag, ok := aputil.NewTagFromField(f)
+			omitEmpty := false
+			zeroTest := ""
+			if ok && jsonTag.Options["omitempty"] {
+				omitEmpty = true
+				zeroTest = getZeroValue(f)
+			}
 			cs.Fields = append(cs.Fields, FieldSpec{
 				FieldName: name,
 				JsonName:  jsonName,
+				OmitEmpty: omitEmpty,
+				ZeroTest:  zeroTest,
 			})
 		}
 		fs.Code = append(fs.Code, cs)
@@ -174,4 +190,58 @@ func generate(spec FileSpec) error {
 	}
 	defer genFile.Close()
 	return tmpl.ExecuteTemplate(genFile, "file", spec)
+}
+
+func getZeroValue(f *ast.Field) string {
+	n := f.Names[0].Name
+	t := f.Type
+	log.Infof("Name: %s, type: %T", n, t)
+
+	// Primitive types
+	i, ok := t.(*ast.Ident)
+	if ok {
+		return getZeroValueFromIdent(n, i)
+	}
+
+	// Pointers
+	_, ok = t.(*ast.StarExpr)
+	if ok {
+		return "aux." + n + " != nil"
+	}
+
+	// Maps
+	_, ok = t.(*ast.MapType)
+	if ok {
+		return "len(aux." + n + ") != 0"
+	}
+
+	//Arrays
+	_, ok = t.(*ast.ArrayType)
+	if ok {
+		return "len(aux." + n + ") != 0"
+	}
+
+	//Structs
+	_, ok = t.(*ast.StructType)
+	if ok {
+		return "aux." + n + " == reflect.Zero(reflect.TypeOf(aux." + n + "))"
+	}
+
+	return "aux." + n + " != nil"
+}
+
+func getZeroValueFromIdent(name string, i *ast.Ident) string {
+	switch i.Name {
+	case "bool":
+		return "aux." + name + " != false"
+	case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64",
+		"float32", "float64", "complex64", "complex128":
+		return "aux." + name + " != 0"
+	case "string":
+		return "aux." + name + " != \"\""
+	case "uintptr", "ptr", "unsafepointer", "interface", "chan", "func":
+		return "aux." + name + " != nil"
+	default: // structs
+		return "reflect.ValueOf(aux." + name + ") == reflect.Zero(reflect.TypeOf(aux." + name + "))"
+	}
 }

@@ -8,8 +8,11 @@ package {{ .Pkg }}
 
 import (
 	"encoding/json"
+	"reflect"
 	"strings"
 )
+
+type Value{{ .Random }} reflect.Value // DO NOT REMOVE (guarantees the reflect package is used)
 {{ range .Code -}}
     {{ template "code" . -}}
 {{ end -}}
@@ -34,7 +37,13 @@ func ({{ .VarName }} {{ .TypeName }}) MarshalJSON() ([]byte, error) {
 	}
 	{{ $ap := .APName -}}
 	{{ range .Fields -}}
+	{{ if .OmitEmpty -}}
+	if {{ .ZeroTest }} {
+		aux.{{ $ap }}["{{ .JsonName }}"] = aux.{{ .FieldName }}
+	}
+	{{ else -}}
 	aux.{{ $ap }}["{{ .JsonName }}"] = aux.{{ .FieldName }}
+	{{ end -}}
 	{{ end -}}
 	return json.Marshal(aux.{{ .APName }})
 }

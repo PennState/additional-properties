@@ -10,17 +10,17 @@ const tagName = "json"
 
 type Tag struct {
 	Name    string
-	Options []string
+	Options map[string]bool
 }
 
-func NewTagFromField(f ast.Field) (Tag, bool) {
+func NewTagFromField(f *ast.Field) (Tag, bool) {
 	if f.Tag == nil {
 		return Tag{}, false
 	}
-	for _, txt := range strings.Split(f.Tag.Value, " ") {
-		if strings.HasPrefix(txt, "`"+tagName) {
-			// TODO: this is kludgey
-			return NewTag(strings.TrimSuffix(strings.TrimPrefix(txt, "`"+tagName+":\""), "\"`"))
+	tkns := strings.Split(strings.TrimSuffix(strings.TrimPrefix(f.Tag.Value, "`"), "`"), " ")
+	for _, tkn := range tkns {
+		if strings.HasPrefix(tkn, tagName) {
+			return NewTag(strings.TrimPrefix(tkn, tagName+":"))
 		}
 	}
 	return Tag{}, false
@@ -35,15 +35,14 @@ func NewTagFromStructField(f reflect.StructField) (Tag, bool) {
 }
 
 func NewTag(txt string) (Tag, bool) {
-	tkns := strings.Split(txt, ",")
-	if len(tkns) == 1 {
-		return Tag{
-			Name: tkns[0],
-		}, true
+	tkns := strings.Split(strings.TrimSuffix(strings.TrimPrefix(txt, "\""), "\""), ",")
+	opts := map[string]bool{}
+	for _, opt := range tkns[1:] {
+		opts[opt] = true
 	}
 	return Tag{
 		Name:    tkns[0],
-		Options: tkns[1:],
+		Options: opts,
 	}, true
 }
 
@@ -56,7 +55,7 @@ func GetJSONName1(f reflect.StructField) string {
 }
 
 func GetJSONName(f *ast.Field) string {
-	tag, ok := NewTagFromField(*f)
+	tag, ok := NewTagFromField(f)
 	if ok {
 		return tag.Name
 	}
