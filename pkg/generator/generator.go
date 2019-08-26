@@ -195,6 +195,7 @@ func generate(spec FileSpec) error {
 func getZeroValue(f *ast.Field) string {
 	n := f.Names[0].Name
 	t := f.Type
+	log.Infof("Name: %s, type: %T", n, t)
 
 	// Primitive types
 	i, ok := t.(*ast.Ident)
@@ -214,16 +215,22 @@ func getZeroValue(f *ast.Field) string {
 		return "len(aux." + n + ") != 0"
 	}
 
-	//Arrays
+	// Arrays
 	_, ok = t.(*ast.ArrayType)
 	if ok {
 		return "len(aux." + n + ") != 0"
 	}
 
-	//Structs
+	// Structs
 	_, ok = t.(*ast.StructType)
 	if ok {
-		return "aux." + n + " == reflect.Zero(reflect.TypeOf(aux." + n + "))"
+		return "reflect.ValueOf(aux." + n + ") == reflect.Zero(reflect.TypeOf(aux." + n + "))"
+	}
+
+	// Selector expressions (such as time.Time)
+	_, ok = t.(*ast.SelectorExpr)
+	if ok {
+		return "reflect.ValueOf(aux." + n + ") == reflect.Zero(reflect.TypeOf(aux." + n + "))"
 	}
 
 	return "aux." + n + " != nil"

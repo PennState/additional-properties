@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-type Valueabe0e11a12fd415db9a13db8256de23d reflect.Value // DO NOT REMOVE (guarantees the reflect package is used)
+type Value2bd27344d6454143a606b6d3aaf2eef8 reflect.Value // DO NOT REMOVE (guarantees the reflect package is used)
 
 // MarshalJSON encodes the OmitEmpty struct to JSON with additional-properties
 func (o OmitEmpty) MarshalJSON() ([]byte, error) {
@@ -50,6 +50,9 @@ func (o OmitEmpty) MarshalJSON() ([]byte, error) {
 	if aux.K != nil {
 		aux.AP["fieldK"] = aux.K
 	}
+	if reflect.ValueOf(aux.L) == reflect.Zero(reflect.TypeOf(aux.L)) {
+		aux.AP["fieldL"] = aux.L
+	}
 	aux.AP["fieldZ"] = aux.Z
 	return json.Marshal(aux.AP)
 }
@@ -75,6 +78,7 @@ func (o *OmitEmpty) UnmarshalJSON(data []byte) error {
 		"fieldI": true, "fieldi": true,
 		"fieldJ": true, "fieldj": true,
 		"fieldK": true, "fieldk": true,
+		"fieldL": true, "fieldl": true,
 		"fieldZ": true, "fieldz": true,
 	}
 	for k := range o.AP {

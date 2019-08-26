@@ -1,5 +1,7 @@
 package acceptance
 
+import "time"
+
 // Simple is the most basic struct to which we can add additional-
 // properties.
 type OmitEmpty struct {
@@ -14,6 +16,7 @@ type OmitEmpty struct {
 	I  *[]string              `json:"fieldI,omitempty"`
 	J  EmptyStruct            `json:"fieldJ,omitempty"`
 	K  *EmptyStruct           `json:"fieldK,omitempty"`
+	L  time.Time              `json:"fieldL,omitempty"`
 	Z  string                 `json:"fieldZ"`
 	AP map[string]interface{} `json:"*"`
 }
