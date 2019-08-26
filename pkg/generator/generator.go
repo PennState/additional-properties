@@ -195,7 +195,7 @@ func generate(spec FileSpec) error {
 func getZeroValue(f *ast.Field) string {
 	n := f.Names[0].Name
 	t := f.Type
-	log.Infof("Name: %s, type: %T", n, t)
+	log.Debugf("Name: %s, type: %T", n, t)
 
 	// Primitive types
 	i, ok := t.(*ast.Ident)
