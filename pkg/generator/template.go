@@ -8,11 +8,12 @@ package {{ .Pkg }}
 
 import (
 	"encoding/json"
+	{{- if .NeedsReflect }}
 	"reflect"
+	{{- end }}
 	"strings"
 )
 
-type Value{{ .Random }} reflect.Value // DO NOT REMOVE (guarantees the reflect package is used)
 {{ range .Code -}}
     {{ template "code" . -}}
 {{ end -}}

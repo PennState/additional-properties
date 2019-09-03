@@ -8,7 +8,6 @@ import (
 	"strings"
 )
 
-type Value2bd27344d6454143a606b6d3aaf2eef8 reflect.Value // DO NOT REMOVE (guarantees the reflect package is used)
 
 // MarshalJSON encodes the OmitEmpty struct to JSON with additional-properties
 func (o OmitEmpty) MarshalJSON() ([]byte, error) {

@@ -4,11 +4,9 @@ package acceptance
 
 import (
 	"encoding/json"
-	"reflect"
 	"strings"
 )
 
-type Value4bd927e0ba48429499ecb361915bc568 reflect.Value // DO NOT REMOVE (guarantees the reflect package is used)
 
 // MarshalJSON encodes the Simple struct to JSON with additional-properties
 func (s Simple) MarshalJSON() ([]byte, error) {

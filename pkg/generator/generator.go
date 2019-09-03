@@ -9,7 +9,6 @@ import (
 	"text/template"
 
 	"github.com/PennState/additional-properties/pkg/aputil"
-	"github.com/google/uuid"
 	"github.com/selesy/genutil/pkg/genutil"
 	log "github.com/sirupsen/logrus"
 )
@@ -63,10 +62,10 @@ func getApField(st *ast.StructType) (*ast.Field, bool) {
 }
 
 type FileSpec struct {
-	GoFile string
-	Random string
-	Pkg    string
-	Code   []CodeSpec
+	GoFile       string
+	NeedsReflect bool
+	Pkg          string
+	Code         []CodeSpec
 }
 
 type CodeSpec struct {
@@ -108,12 +107,9 @@ func findTargets() ([]FileSpec, error) {
 	specs := map[string]FileSpec{}
 	for _, match := range matches {
 		fs, ok := specs[match.GoFile]
-		uuid, _ := uuid.NewRandom()
-		random := strings.ReplaceAll(uuid.String(), "-", "")
 		if !ok {
 			fs = FileSpec{
 				GoFile: match.GoFile,
-				Random: random,
 				Pkg:    match.File.Name.Name,
 				Code:   []CodeSpec{},
 			}
@@ -145,6 +141,9 @@ func findTargets() ([]FileSpec, error) {
 			if ok && jsonTag.Options["omitempty"] {
 				omitEmpty = true
 				zeroTest = getZeroValue(f)
+				if strings.Contains(zeroTest, "reflect") {
+					fs.NeedsReflect = true
+				}
 			}
 			cs.Fields = append(cs.Fields, FieldSpec{
 				FieldName: name,
