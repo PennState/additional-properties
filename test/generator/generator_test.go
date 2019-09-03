@@ -3,8 +3,11 @@ package acceptance
 import (
 	"encoding/json"
 	"io/ioutil"
+	"os"
 	"testing"
 
+	"github.com/PennState/additional-properties/pkg/generator"
+	"github.com/PennState/proctor/pkg/goldenfile"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -25,23 +28,42 @@ var tests = []struct {
 func TestGeneratedMarshalerWorks(t *testing.T) {
 	for _, test := range tests {
 		t.Log("Test name (marshaling): ", test.Name)
-		expected, err := ioutil.ReadFile("./testdata/" + test.MarshalJson)
-		require.NoError(t, err)
 		input := test.Data()
 		actual, err := json.Marshal(input)
 		assert.NoError(t, err)
-		assert.JSONEq(t, string(expected), string(actual))
+		fp := goldenfile.GetDefaultFilePath(test.MarshalJson)
+		goldenfile.AssertJSONEq(t, fp, string(actual))
 	}
 }
 
 func TestGeneratedUnmarshalerWorks(t *testing.T) {
 	for _, test := range tests {
 		t.Log("Test name (unmarshaling): ", test.Name)
-		data, err := ioutil.ReadFile("./testdata/" + test.UnmarshalJson)
+		fp := goldenfile.GetDefaultFilePath(test.UnmarshalJson)
+		data, err := ioutil.ReadFile(fp)
 		require.NoError(t, err)
 		z := test.Zero()
 		err = json.Unmarshal(data, z)
 		assert.NoError(t, err)
 		assert.EqualValues(t, test.Data(), z)
+	}
+}
+
+func TestGeneratedFileMatches(t *testing.T) {
+	tests := []struct {
+		Name string
+		File string
+	}{
+		{Name: "Omit Empty Generated File", File: "omitempty_gen.go"},
+		{Name: "Simple JSON File", File: "simple_gen.go"},
+	}
+	t.Log(os.Args)
+	err := generator.Run()
+	require.NoError(t, err)
+	for _, test := range tests {
+		actual, err := ioutil.ReadFile(test.File)
+		require.NoError(t, err)
+		fp := goldenfile.GetDefaultFilePath(test.File)
+		goldenfile.AssertStringEq(t, fp, string(actual))
 	}
 }
