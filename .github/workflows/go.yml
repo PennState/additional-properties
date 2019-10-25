@@ -28,4 +28,4 @@ jobs:
       uses: actions-contrib/golangci-lint@v0.1.0
       
     - name: Build
-      run: go build -v .
+      run: go build -v ./...
