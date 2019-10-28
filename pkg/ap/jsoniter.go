@@ -165,13 +165,28 @@ func (e *additionalPropertiesExtension) DecorateEncoder(
 		fields[toName] = binding
 	}
 
-	omitEmpties := map[string]bool{}
 	styp := typ.(reflect2.StructType)
-	for i := 0; i < styp.NumField(); i++ {
-		name, qualifiers := jsonTag(styp.Field(i))
-		omitEmpties[name] = qualifiers["omitempty"]
-	}
+	omitEmpties := omitEmpties(styp)
 	return &apStructEncoder{fields, apBinding, omitEmpties}
+}
+
+func omitEmpties(typ reflect2.StructType) map[string]bool {
+	empties := map[string]bool{}
+	for i := 0; i < typ.NumField(); i++ {
+		f := typ.Field(i)
+		if f.Anonymous() {
+			styp := f.Type().(reflect2.StructType)
+			embeddedEmpties := omitEmpties(styp)
+			for k := range embeddedEmpties {
+				empties[k] = embeddedEmpties[k]
+			}
+			continue
+		}
+		name, qualifiers := jsonTag(f)
+		log.Info("Field name: ", name, ", qualifiers: ", qualifiers)
+		empties[name] = qualifiers["omitempty"]
+	}
+	return empties
 }
 
 func jsonTag(f reflect2.StructField) (string, map[string]bool) {
@@ -206,6 +221,7 @@ func (e *apStructEncoder) Encode(ptr unsafe.Pointer, stream *jsoniter.Stream) {
 
 	first := true
 	for key, binding := range e.Fields {
+		log.Info("Field key: ", key)
 		if e.OmitEmpties[key] && binding.Encoder.IsEmpty(ptr) {
 			log.Info("Omitempty - key: ", key)
 			continue
