@@ -6,6 +6,7 @@ import "encoding/json"
 // properties.
 type Inner struct {
 	FieldA string                     `json:"fieldA"`
+	Empty  string                     `json:"empty,omitempty"`
 	AP     map[string]json.RawMessage `json:"*"`
 }
 
