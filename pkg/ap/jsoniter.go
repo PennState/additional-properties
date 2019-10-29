@@ -34,12 +34,12 @@ func RegisterAdditionalPropertiesExtension(api jsoniter.API) {
 // the fields provided by the StructDescriptor and caches both the
 // resulting field list and the AP field for decorator construction.
 func (e *additionalPropertiesExtension) UpdateStructDescriptor(desc *jsoniter.StructDescriptor) {
-	log.Info("UpdateStructDescriptor")
+	log.Debug("UpdateStructDescriptor")
 	typ := typeName(desc.Type)
 	log.Debug("Type: ", typ)
 
 	if _, ok := e.Desc[typ]; ok {
-		log.Info("Short-circuit: Descriptor already updated")
+		log.Debug("Short-circuit: Descriptor already updated")
 		return
 	}
 
@@ -134,12 +134,12 @@ func (e *additionalPropertiesExtension) DecorateEncoder(
 	typ reflect2.Type,
 	encoder jsoniter.ValEncoder,
 ) jsoniter.ValEncoder {
-	log.Info("DecorateEncoder")
+	log.Trace("DecorateEncoder")
 	name := typeName(typ)
-	log.Info("Type: ", name)
+	log.Debug("Type: ", name)
 
 	if typ.Kind() != reflect.Struct {
-		log.Info("Not decorating encoder - not a struct: ", name)
+		log.Debug("Not decorating encoder - not a struct: ", name)
 		return encoder
 	}
 
@@ -149,16 +149,16 @@ func (e *additionalPropertiesExtension) DecorateEncoder(
 
 	apBinding, ok := e.APBinding[name]
 	if !ok {
-		log.Info("Not decorating encoder - no AP field")
+		log.Debug("Not decorating encoder - no AP field")
 		return encoder
 	}
 
 	if apBinding == nil {
-		log.Info("Not decorating encoder - AP binding is nil")
+		log.Debug("Not decorating encoder - AP binding is nil")
 		return encoder
 	}
 
-	log.Info("Decorating encoder: ", name)
+	log.Debug("Decorating encoder: ", name)
 	fields := map[string]*jsoniter.Binding{}
 	for _, binding := range e.Desc[name].Fields {
 		toName := binding.ToNames[0]
@@ -183,7 +183,7 @@ func omitEmpties(typ reflect2.StructType) map[string]bool {
 			continue
 		}
 		name, qualifiers := jsonTag(f)
-		log.Info("Field name: ", name, ", qualifiers: ", qualifiers)
+		log.Debug("Field name: ", name, ", qualifiers: ", qualifiers)
 		empties[name] = qualifiers["omitempty"]
 	}
 	return empties
@@ -213,17 +213,17 @@ type apStructEncoder struct {
 }
 
 func (e *apStructEncoder) Encode(ptr unsafe.Pointer, stream *jsoniter.Stream) {
-	log.Info("apStructEncoder")
+	log.Debug("apStructEncoder")
 
-	log.Infof("Stream: %v", ptr)
+	log.Debugf("Stream: %v", ptr)
 	stream.WriteObjectStart()
-	log.Info("Field count: ", len(e.Fields))
+	log.Debug("Field count: ", len(e.Fields))
 
 	first := true
 	for key, binding := range e.Fields {
-		log.Info("Field key: ", key)
+		log.Debug("Field key: ", key)
 		if e.OmitEmpties[key] && binding.Encoder.IsEmpty(ptr) {
-			log.Info("Omitempty - key: ", key)
+			log.Debug("Omitempty - key: ", key)
 			continue
 		}
 		if !first {
@@ -234,7 +234,7 @@ func (e *apStructEncoder) Encode(ptr unsafe.Pointer, stream *jsoniter.Stream) {
 		first = false
 	}
 
-	log.Info("AP binding: ", e.APBinding)
+	log.Debug("AP binding: ", e.APBinding)
 	if e.APBinding == nil {
 		stream.WriteObjectEnd()
 		return
@@ -242,9 +242,9 @@ func (e *apStructEncoder) Encode(ptr unsafe.Pointer, stream *jsoniter.Stream) {
 
 	// Add the additional properties to the
 	ap := *(*map[string]json.RawMessage)(e.APBinding.Field.UnsafeGet(ptr))
-	log.Info("AP: ", ap)
+	log.Debug("AP: ", ap)
 	for k, v := range ap {
-		log.Info("K: ", k, ", V: ", v)
+		log.Debug("K: ", k, ", V: ", v)
 		if !first {
 			stream.WriteMore()
 		}
