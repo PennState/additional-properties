@@ -26,6 +26,8 @@ var cases = []struct {
 	{"No additional properties", "noap.json", "noap.json", NewTestSimpleWithoutAP, NewZeroSimple},
 	{"Respects omitempty", "omitempty.json", "omitempty.json", NewTestOmitEmpty, NewZeroOmitEmpty},
 	{"Embedded struct with AP", "embedded.json", "embedded.json", NewTestOuter, NewZeroOuter},
+	{"Aliased AP", "aliased.json", "aliased.json", NewTestAlias, NewZeroAlias},
+	// {"Anonymous aliased AP", "anonymous.json", "anonymous.json", NewTestAnonymous, NewZeroAnonymous},
 }
 
 func TestMarshaling(t *testing.T) {
