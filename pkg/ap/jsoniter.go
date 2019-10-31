@@ -26,15 +26,28 @@ func newAdditionalPropertiesExtension() *additionalPropertiesExtension {
 	}
 }
 
-func RegisterAdditionalPropertiesExtension(api jsoniter.API) {
+// RegisterAdditionalPropertiesExtension registers the AP extension with
+// the passed jsoniter.API
+func RegisterAdditionalPropertiesExtension(api jsoniter.API) jsoniter.API {
 	api.RegisterExtension(newAdditionalPropertiesExtension())
+	return api
 }
+
+// ConfigCompatibleWithStandardLibrary provides a jsoniter API object
+// that has already registered the additional-properties extension.
+var ConfigCompatibleWithStandardLibrary = //nolint:gochecknoglobals
+RegisterAdditionalPropertiesExtension(jsoniter.Config{
+	EscapeHTML:             true,
+	SortMapKeys:            true,
+	ValidateJsonRawMessage: true,
+}.Froze())
 
 // UpdateStructDescriptor removes the wildcard field (if it exists) from
 // the fields provided by the StructDescriptor and caches both the
 // resulting field list and the AP field for decorator construction.
 func (e *additionalPropertiesExtension) UpdateStructDescriptor(desc *jsoniter.StructDescriptor) {
 	log.Debug("UpdateStructDescriptor")
+
 	typ := typeName(desc.Type)
 	log.Debug("Type: ", typ)
 

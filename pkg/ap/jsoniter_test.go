@@ -7,7 +7,6 @@ import (
 	"github.com/PennState/additional-properties/pkg/ap"
 	"github.com/PennState/proctor/pkg/goldenfile"
 	_ "github.com/PennState/proctor/pkg/log"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -29,12 +28,7 @@ var cases = []struct {
 }
 
 func TestMarshaling(t *testing.T) {
-	json := jsoniter.Config{
-		EscapeHTML:             true,
-		SortMapKeys:            true,
-		ValidateJsonRawMessage: true,
-	}.Froze()
-	ap.RegisterAdditionalPropertiesExtension(json)
+	json := ap.ConfigCompatibleWithStandardLibrary
 	for idx := range cases {
 		c := cases[idx]
 		t.Run(c.Name, func(t *testing.T) {
@@ -48,12 +42,7 @@ func TestMarshaling(t *testing.T) {
 }
 
 func TestUnmarshaling(t *testing.T) {
-	json := jsoniter.Config{
-		EscapeHTML:             true,
-		SortMapKeys:            true,
-		ValidateJsonRawMessage: true,
-	}.Froze()
-	ap.RegisterAdditionalPropertiesExtension(json)
+	json := ap.ConfigCompatibleWithStandardLibrary
 	for idx := range cases {
 		c := cases[idx]
 		t.Run(c.Name, func(t *testing.T) {
