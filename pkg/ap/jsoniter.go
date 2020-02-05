@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"sync"
 	"unsafe"
 
 	jsoniter "github.com/json-iterator/go"
@@ -16,6 +17,7 @@ type additionalPropertiesExtension struct {
 	jsoniter.DummyExtension
 	Desc      map[string]*jsoniter.StructDescriptor
 	APBinding map[string]*jsoniter.Binding
+	Mutex     *sync.Mutex
 }
 
 func newAdditionalPropertiesExtension() *additionalPropertiesExtension {
@@ -23,6 +25,7 @@ func newAdditionalPropertiesExtension() *additionalPropertiesExtension {
 		DummyExtension: jsoniter.DummyExtension{},
 		Desc:           map[string]*jsoniter.StructDescriptor{},
 		APBinding:      map[string]*jsoniter.Binding{},
+		Mutex:          &sync.Mutex{},
 	}
 }
 
@@ -51,17 +54,22 @@ func (e *additionalPropertiesExtension) UpdateStructDescriptor(desc *jsoniter.St
 	typ := typeName(desc.Type)
 	log.Debug("Type: ", typ)
 
+	e.Mutex.Lock()
 	if _, ok := e.Desc[typ]; ok {
+		e.Mutex.Unlock()
 		log.Debug("Short-circuit: Descriptor already updated")
 		return
 	}
 
 	e.Desc[typ] = desc
+	e.Mutex.Unlock()
 
 	log.Debug("Fields: ", desc.Fields)
 	for idx, binding := range desc.Fields {
 		if len(binding.FromNames) == 1 && binding.FromNames[0] == "*" {
+			e.Mutex.Lock()
 			e.APBinding[typ] = binding
+			e.Mutex.Unlock()
 			desc.Fields = append(desc.Fields[:idx], desc.Fields[idx+1:]...)
 			log.Debug("    AP binding: ", binding)
 			break
@@ -83,6 +91,8 @@ func (e *additionalPropertiesExtension) DecorateDecoder(
 		return decoder
 	}
 
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
 	if e.APBinding[name] == nil && e.Desc[name] != nil {
 		e.APBinding[name] = e.embeddedAPBinding(e.Desc[name].Type)
 	}
@@ -156,6 +166,8 @@ func (e *additionalPropertiesExtension) DecorateEncoder(
 		return encoder
 	}
 
+	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
 	if e.APBinding[name] == nil && e.Desc[name] != nil {
 		e.APBinding[name] = e.embeddedAPBinding(e.Desc[name].Type)
 	}
