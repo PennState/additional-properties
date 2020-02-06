@@ -55,21 +55,18 @@ func (e *additionalPropertiesExtension) UpdateStructDescriptor(desc *jsoniter.St
 	log.Debug("Type: ", typ)
 
 	e.Mutex.Lock()
+	defer e.Mutex.Unlock()
 	if _, ok := e.Desc[typ]; ok {
-		e.Mutex.Unlock()
 		log.Debug("Short-circuit: Descriptor already updated")
 		return
 	}
 
 	e.Desc[typ] = desc
-	e.Mutex.Unlock()
 
 	log.Debug("Fields: ", desc.Fields)
 	for idx, binding := range desc.Fields {
 		if len(binding.FromNames) == 1 && binding.FromNames[0] == "*" {
-			e.Mutex.Lock()
 			e.APBinding[typ] = binding
-			e.Mutex.Unlock()
 			desc.Fields = append(desc.Fields[:idx], desc.Fields[idx+1:]...)
 			log.Debug("    AP binding: ", binding)
 			break
